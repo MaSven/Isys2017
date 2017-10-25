@@ -61,7 +61,7 @@
 							<!-- Dauer der Simulation in Tage -->
 								<property>
 									<name>Simulation.Dauer</name>
-									<value>10</value>
+									<value>2</value>
 								</property>
 								<!-- Anzahl der Teilnehmer -->
 								<property>
@@ -72,6 +72,14 @@
 								<property>
 									<name>Datei.Begegnungswahrscheinlichkeiten</name>
 									<value>/home/sven/Downloads/Begegnungswahrscheinlichkeiten.txt</value>
+								</property>
+								<property>
+									<name>Dump.Pfad</name>
+									<value>home/sven/Downloads/</value>
+								</property>
+								<property>
+									<name>Tage.Pro.Simulation</name>
+									<value>10</value>
 								</property>
 							</properties>
 						</configuration>
