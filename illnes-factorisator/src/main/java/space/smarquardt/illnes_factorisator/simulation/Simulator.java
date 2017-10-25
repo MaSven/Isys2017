@@ -94,7 +94,7 @@ public class Simulator {
 				.forEachOrdered(attende -> Stream.of(this.attendees)
 						/* Hat er einen Kranken getroffen ? */
 						.filter(att -> attende.meetOtherAttende(att.getId()))
-						/* Ist er Krank geworden? */
+								/* Ist er Krank geworden von der Begegnung? */
 						.filter(att -> Math.random() <= 0.1)
 						/* Mach ihn krank */
 						.forEach(illAttende -> {
