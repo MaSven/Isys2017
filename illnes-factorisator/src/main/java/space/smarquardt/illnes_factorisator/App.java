@@ -7,6 +7,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import space.smarquardt.illnes_factorisator.exception.IllnesFactorisatoSettingException;
 import space.smarquardt.illnes_factorisator.settings.Setting;
+import space.smarquardt.illnes_factorisator.simulation.Simulator;
 
 /**
  * Hello world!
@@ -14,14 +15,27 @@ import space.smarquardt.illnes_factorisator.settings.Setting;
  */
 public class App
 {
-	public static void main(final String[] args) throws IllnesFactorisatoSettingException, URISyntaxException
+	public static void main(final String[] args)
 	{
-		Setting setting;
+		Setting setting = null;
 		if (ArrayUtils.isEmpty(args)) {
 			// Einstellungen sollten durch das Maven plugin erfolgt sein
 			setting = new Setting();
 		} else {
-			setting = new Setting(new URI(args[0]));
+			try {
+				setting = new Setting(new URI(args[0]));
+			} catch (IllnesFactorisatoSettingException | URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		final Simulator simulator = new Simulator(setting);
+		try {
+			simulator.startSimulation();
+		} catch (final IllnesFactorisatoSettingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 	}

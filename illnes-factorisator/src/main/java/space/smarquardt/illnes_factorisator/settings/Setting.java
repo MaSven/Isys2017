@@ -70,7 +70,7 @@ public class Setting {
 	 * @since 22.10.2017
 	 */
 	public Setting(final URI fileDir) throws IllnesFactorisatoSettingException {
-		final File propertieFile = new File(fileDir);
+		final File propertieFile = new File(fileDir.toString());
 		if (propertieFile.exists()) {
 			final Properties properties = new Properties();
 			try {
@@ -154,14 +154,23 @@ public class Setting {
 		return this.simulationDuration;
 	}
 
+	/**
+	 * Alle Wahrscheinlichkeiten als Doppelte Liste
+	 * 
+	 * @return {@link List} von {@link List} von {@link Float} mit den chancen
+	 * @throws IllnesFactorisatoSettingException
+	 * @author Sven Marquardt
+	 * @since 25.10.2017
+	 */
 	public List<List<Float>> getChances() throws IllnesFactorisatoSettingException {
 		final int count = this.countPeople.orElse(0);
 		try {
 			final List<List<Float>> chances = new ArrayList<>(count);
 			Files.lines(this.dirToPeopleMeetChance.toPath()).forEach(line -> {
 				final List<Float> bufferList = new ArrayList<>(count);
-				Stream.of(line.split(" ")).filter(NumberUtils::isCreatable).mapToDouble(NumberUtils::createDouble)
-				.forEach(number -> bufferList.add((float) number));
+				Stream.of(line.split("\t"))
+				.filter(NumberUtils::isParsable).map(Float::parseFloat)
+				.forEach(bufferList::add);
 				chances.add(bufferList);
 			});
 			return chances;

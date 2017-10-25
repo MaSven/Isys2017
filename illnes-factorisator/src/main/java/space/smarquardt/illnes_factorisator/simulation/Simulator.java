@@ -48,6 +48,10 @@ public class Simulator {
 	 * Einstellungen fuer den Simulator
 	 */
 	private final Setting setting;
+	/**
+	 * Pfad an dem die log datei abgelegt wird pro Simulation
+	 */
+	private String pathToDump;
 
 	/**
 	 * 
@@ -79,7 +83,7 @@ public class Simulator {
 
 		this.attendees = bufferList.toArray(new Attendee[this.attendeesCounter]);
 		// Durchläufe der simulationen
-		IntStream.range(0, this.durations).forEach((i) -> {
+		IntStream.range(0, this.durations).sequential().forEach(i -> {
 			this.randomFirst();
 			while (!this.allRecoverd()) {
 				/* Einen tag */
@@ -94,32 +98,44 @@ public class Simulator {
 				.forEachOrdered(attende -> Stream.of(this.attendees)
 						/* Hat er einen Kranken getroffen ? */
 						.filter(att -> attende.meetOtherAttende(att.getId()))
-								/* Ist er Krank geworden von der Begegnung? */
+						/* Ist er Krank geworden von der Begegnung? */
 						.filter(att -> Math.random() <= 0.1)
 						/* Mach ihn krank */
 						.forEach(illAttende -> {
 							illAttende.setDaysLeftForRecovery(this.simulationDuration);
 							illAttende.setIll();
 						}));
+				try {
+					this.dumpList(i);
+				} catch (final SimulationException e) {
+					System.out.println(e.getMessage());
+				}
 
 			}
 			// Neue Krankheitswelle
 			this.cleanUp();
-			try {
-				this.dumpList(i);
-			} catch (final SimulationException e) {
-				System.err.println(e.getMessage());
-			}
+
 		});
 	}
 
 
 
+	/**
+	 * Speichere den zustand alle {@link Attendee}
+	 * 
+	 * @param dayNumber
+	 *            Welchen durchlauf wir haben
+	 * @throws SimulationException
+	 * @author Sven Marquardt
+	 * @since 25.10.2017
+	 */
 	private void dumpList(final int dayNumber) throws SimulationException {
 		final StringJoiner joiner = new StringJoiner(";");
+		final long time = System.currentTimeMillis();
 		Stream.of(this.attendees).forEachOrdered(attendee -> joiner.add(attendee.toString()));
 		try {
-			Files.write(Paths.get(this.setting.getPathToDumps(), "tag" + dayNumber + ".log"),
+			Files.write(
+					Paths.get(this.setting.getPathToDumps(), "Simulations_Durchlauf" + dayNumber + "" + time + ".log"),
 					joiner.toString().getBytes(), StandardOpenOption.CREATE);
 		} catch (final IOException e) {
 			throw new SimulationException("Schreiben der Log datei fehlgeschlagen", e);
@@ -145,6 +161,7 @@ public class Simulator {
 	private void randomFirst() {
 		final int randomAttende = RandomUtils.nextInt(0, this.attendeesCounter);
 		this.attendees[randomAttende].setIll();
+		this.attendees[randomAttende].setDaysLeftForRecovery(this.simulationDuration);
 	}
 
 	/**
@@ -156,7 +173,7 @@ public class Simulator {
 	 * @since 25.10.2017
 	 */
 	private boolean allRecoverd() {
-		return Stream.of(this.attendees).anyMatch(Attendee::isIll);
+		return !Stream.of(this.attendees).anyMatch(Attendee::isIll);
 	}
 
 }

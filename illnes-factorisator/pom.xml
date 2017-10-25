@@ -49,43 +49,69 @@
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>properties-maven-plugin</artifactId>
-				<version>1.0.0</version>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
 				<executions>
 					<execution>
+					<phase>test</phase>
 						<goals>
-							<goal>set-system-properties</goal>
+							<goal>java</goal>
 						</goals>
 						<configuration>
-							<properties>
-							<!-- Dauer der Simulation in Tage -->
-								<property>
-									<name>Simulation.Dauer</name>
-									<value>2</value>
-								</property>
-								<!-- Anzahl der Teilnehmer -->
-								<property>
-									<name>Anzahl.Teilnehmer</name>
-									<value>20</value>
-								</property>
-								<!-- Datei zur begenungswahrscheinlichkeit -->
-								<property>
-									<name>Datei.Begegnungswahrscheinlichkeiten</name>
-									<value>/home/sven/Downloads/Begegnungswahrscheinlichkeiten.txt</value>
-								</property>
-								<property>
-									<name>Dump.Pfad</name>
-									<value>home/sven/Downloads/</value>
-								</property>
-								<property>
-									<name>Tage.Pro.Simulation</name>
-									<value>10</value>
-								</property>
-							</properties>
+							<mainClass>space.smarquardt.illnes_factorisator.App</mainClass>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 		</plugins>
+
 	</build>
+	<profiles>
+		<profile>
+			<id>maven</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>properties-maven-plugin</artifactId>
+						<version>1.0.0</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>set-system-properties</goal>
+								</goals>
+								<configuration>
+									<properties>
+										<!-- Dauer der Simulation in Tage -->
+										<property>
+											<name>Simulation.Dauer</name>
+											<value>2</value>
+										</property>
+										<!-- Anzahl der Teilnehmer -->
+										<property>
+											<name>Anzahl.Teilnehmer</name>
+											<value>20</value>
+										</property>
+										<!-- Datei zur begenungswahrscheinlichkeit -->
+										<property>
+											<name>Datei.Begegnungswahrscheinlichkeiten</name>
+											<value>/home/sven/Downloads/Begegnungswahrscheinlichkeiten.txt</value>
+										</property>
+										<property>
+											<name>Dump.Pfad</name>
+											<value>home/sven/Downloads/</value>
+										</property>
+										<property>
+											<name>Tage.Pro.Simulation</name>
+											<value>10</value>
+										</property>
+									</properties>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
