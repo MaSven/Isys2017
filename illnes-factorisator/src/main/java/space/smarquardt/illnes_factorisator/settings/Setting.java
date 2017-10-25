@@ -4,8 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -29,6 +33,8 @@ public class Setting {
 	 * {@link Properties} key fuer die Begegnungswahrscheinlichkeiten
 	 */
 	private static final String PEOPLE_MEET_CHANCE = "Datei.Begegnungswahrscheinlichkeiten";
+
+	private static final String DAYS_PER_SIMULATION = "Tage.Pro.Simulation";
 	/**
 	 * Anzahl der Personen die geprueft werden soll
 	 */
@@ -36,7 +42,12 @@ public class Setting {
 	/**
 	 * Anzahl der Tage die, die Simulation laufen soll
 	 */
+	private final Optional<Integer> daysPerSimulation;
+	/**
+	 * Anzahl der Simulationen
+	 */
 	private final Optional<Integer> simulationDuration;
+
 	/**
 	 * Datei die die infos enthält bei welcher Wahrscheinlichkeit sich die
 	 * Teilnehmer treffen sollen.
@@ -61,7 +72,9 @@ public class Setting {
 				properties.load(new FileInputStream(propertieFile));
 				this.countPeople = this.getNumberOfPropertie(properties, Setting.COUNT_PEOPLE_KEY);
 				this.simulationDuration = this.getNumberOfPropertie(properties, Setting.SIMULATION_DURATION_KEY);
+				this.daysPerSimulation = this.getNumberOfPropertie(properties, Setting.DAYS_PER_SIMULATION);
 				final String bufferDir = properties.getProperty(Setting.PEOPLE_MEET_CHANCE);
+
 				this.dirToPeopleMeetChance = new File(bufferDir);
 			} catch (final IOException e) {
 				throw new IllnesFactorisatoSettingException(
@@ -82,7 +95,9 @@ public class Setting {
 		final Properties properties = System.getProperties();
 		this.countPeople = this.getNumberOfPropertie(properties, Setting.COUNT_PEOPLE_KEY);
 		this.simulationDuration = this.getNumberOfPropertie(properties, Setting.SIMULATION_DURATION_KEY);
+		this.daysPerSimulation = this.getNumberOfPropertie(properties, Setting.DAYS_PER_SIMULATION);
 		this.dirToPeopleMeetChance = new File(properties.getProperty(Setting.PEOPLE_MEET_CHANCE));
+
 	}
 
 	/**
@@ -105,19 +120,11 @@ public class Setting {
 		return Optional.empty();
 	}
 
-
 	/**
 	 * @return the countPeople
 	 */
 	public Optional<Integer> getCountPeople() {
 		return this.countPeople;
-	}
-
-	/**
-	 * @return the countDays
-	 */
-	public Optional<Integer> getCountDays() {
-		return this.simulationDuration;
 	}
 
 	/**
@@ -127,10 +134,36 @@ public class Setting {
 		return this.dirToPeopleMeetChance;
 	}
 
+	/**
+	 * @return the daysPerSimulation
+	 */
+	public Optional<Integer> getDaysPerSimulation() {
+		return this.daysPerSimulation;
+	}
 
+	/**
+	 * @return the simulationDuration
+	 */
+	public Optional<Integer> getSimulationDuration() {
+		return this.simulationDuration;
+	}
 
+	public List<List<Float>> getChances() throws IllnesFactorisatoSettingException {
+		final int count = this.countPeople.orElse(0);
+		try {
+			final List<List<Float>> chances = new ArrayList<>(count);
+			Files.lines(this.dirToPeopleMeetChance.toPath()).forEach(line -> {
+				final List<Float> bufferList = new ArrayList<>(count);
+				Stream.of(line.split(" ")).filter(NumberUtils::isCreatable).mapToDouble(NumberUtils::createDouble)
+				.forEach(number -> bufferList.add((float) number));
+				chances.add(bufferList);
+			});
+			return chances;
 
+		} catch (final IOException e) {
+			throw new IllnesFactorisatoSettingException("Fehler beim Lesen der Warhscheinlichkeits datei", e);
+		}
 
-
+	}
 
 }
