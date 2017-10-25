@@ -35,6 +35,7 @@ public class Setting {
 	private static final String PEOPLE_MEET_CHANCE = "Datei.Begegnungswahrscheinlichkeiten";
 
 	private static final String DAYS_PER_SIMULATION = "Tage.Pro.Simulation";
+	private static final String PATH_TO_DUMP = "Dump.Pfad";
 	/**
 	 * Anzahl der Personen die geprueft werden soll
 	 */
@@ -53,6 +54,10 @@ public class Setting {
 	 * Teilnehmer treffen sollen.
 	 */
 	private final File dirToPeopleMeetChance;
+	/**
+	 * Pfad an dem die Daten abgelegt werden sollen
+	 */
+	private String pathToDumps;
 
 	/**
 	 * Konsturktur um die Properties selber zu setzen duch das angeben einer Datei
@@ -73,6 +78,7 @@ public class Setting {
 				this.countPeople = this.getNumberOfPropertie(properties, Setting.COUNT_PEOPLE_KEY);
 				this.simulationDuration = this.getNumberOfPropertie(properties, Setting.SIMULATION_DURATION_KEY);
 				this.daysPerSimulation = this.getNumberOfPropertie(properties, Setting.DAYS_PER_SIMULATION);
+				this.pathToDumps = properties.getProperty(Setting.PATH_TO_DUMP);
 				final String bufferDir = properties.getProperty(Setting.PEOPLE_MEET_CHANCE);
 
 				this.dirToPeopleMeetChance = new File(bufferDir);
@@ -164,6 +170,13 @@ public class Setting {
 			throw new IllnesFactorisatoSettingException("Fehler beim Lesen der Warhscheinlichkeits datei", e);
 		}
 
+	}
+
+	/**
+	 * @return the pathToDumps
+	 */
+	public String getPathToDumps() {
+		return this.pathToDumps;
 	}
 
 }
