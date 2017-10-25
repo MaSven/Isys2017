@@ -23,5 +23,6 @@ public class App
 		} else {
 			setting = new Setting(new URI(args[0]));
 		}
+
 	}
 }
