@@ -4,6 +4,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.status.StatusLogger;
 
 import space.smarquardt.illnes_factorisator.exception.IllnesFactorisatoSettingException;
 import space.smarquardt.illnes_factorisator.settings.Setting;
@@ -17,6 +19,7 @@ public class App
 {
 	public static void main(final String[] args)
 	{
+		StatusLogger.getLogger().setLevel(Level.ALL);
 		Setting setting = null;
 		if (ArrayUtils.isEmpty(args)) {
 			// Einstellungen sollten durch das Maven plugin erfolgt sein

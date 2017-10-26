@@ -5,6 +5,7 @@ package space.smarquardt.illnes_factorisator.simulation;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -15,6 +16,9 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.util.Unbox;
 
 import space.smarquardt.illnes_factorisator.exception.IllnesFactorisatoSettingException;
 import space.smarquardt.illnes_factorisator.exception.SimulationException;
@@ -28,6 +32,7 @@ import space.smarquardt.illnes_factorisator.settings.Setting;
  *
  */
 public class Simulator {
+	private static final Logger logger = LogManager.getLogger();
 	/**
 	 * Anzahl der durchläufe
 	 */
@@ -49,9 +54,9 @@ public class Simulator {
 	 */
 	private final Setting setting;
 	/**
-	 * Pfad an dem die log datei abgelegt wird pro Simulation
+	 * Benutzt um eine eindutige id für die logs zu erstellen
 	 */
-	private String pathToDump;
+	private final long time = System.currentTimeMillis();
 
 	/**
 	 * 
@@ -74,28 +79,37 @@ public class Simulator {
 	 * @since 25.10.2017
 	 */
 	public void startSimulation() throws IllnesFactorisatoSettingException {
+		Simulator.logger.info("Starte die Simulation Zeit:{}", Unbox.box(System.currentTimeMillis()));
 		final List<Attendee> bufferList = new ArrayList<>();
 		this.setting.getChances().forEach(row -> {
 			final Attendee attendee = new Attendee(
 					ArrayUtils.toPrimitive(row.toArray(new Float[this.attendeesCounter])));
 			bufferList.add(attendee);
 		});
-
 		this.attendees = bufferList.toArray(new Attendee[this.attendeesCounter]);
+		Simulator.logger.info("Simulation starten mit {} Teilnehmer", Unbox.box(this.attendees.length));
 		// Durchläufe der simulationen
-		IntStream.range(0, this.durations).sequential().forEach(i -> {
+		IntStream.range(1, this.durations).sequential().forEach(i -> {
+			Simulator.logger.info("Starte Tag {}", Unbox.box(i));
 			this.randomFirst();
-			while (!this.allRecoverd()) {
-				/* Einen tag */
-				Stream.of(this.attendees).
-				/* Nur kranke Leute duerfen mit gesunden Leuten reden */
-				filter(Attendee::isIll).
-				/* Wenn krank einen tag näher an der genesung */
-				map(illAttende -> {
-					illAttende.decreaseDaysLeftForRecovery();
-					return illAttende;
-				})
-				.forEachOrdered(attende -> Stream.of(this.attendees)
+			Simulator.logger.info("Ersten random kranken gesetzt");
+			try {
+				final Path logPath = this.dumpPath(i);
+				// Tage
+				while (!this.allRecoverd()) {
+					Simulator.logger.info("Es gibt {} Kranke",
+							Unbox.box(Stream.of(this.attendees).filter(Attendee::isIll).count()));
+					Simulator.logger.info("{}",
+							Stream.of(this.attendees).map(Attendee::toString).reduce("", String::concat));
+					// Tage der Krankheit um einen verringern
+					Stream.of(this.attendees).distinct().forEachOrdered(Attendee::decreaseDaysLeftForRecovery);
+					/* Einen tag */
+					Stream.of(this.attendees).distinct().
+					/* Nur kranke bzw ansteckende Leute duerfen mit gesunden Leuten reden */
+					filter(Attendee::isIll).filter(Attendee::isContagious).forEachOrdered(attende -> {
+						Stream.of(this.attendees).distinct().filter(normalAttende -> !normalAttende.isImmun())
+						/* Wenn schon krank ist es egal ob sie sich treffen */
+						.filter(normalAttende -> !normalAttende.isIll())
 						/* Hat er einen Kranken getroffen ? */
 						.filter(att -> attende.meetOtherAttende(att.getId()))
 						/* Ist er Krank geworden von der Begegnung? */
@@ -104,21 +118,19 @@ public class Simulator {
 						.forEach(illAttende -> {
 							illAttende.setDaysLeftForRecovery(this.simulationDuration);
 							illAttende.setIll();
-						}));
-				try {
-					this.dumpList(i);
-				} catch (final SimulationException e) {
-					System.out.println(e.getMessage());
-				}
+						});
+					});
+					this.dumpList(i, logPath);
 
+				}
+			} catch (final IOException | SimulationException e) {
+				Simulator.logger.error(e.getMessage());
 			}
 			// Neue Krankheitswelle
 			this.cleanUp();
 
 		});
 	}
-
-
 
 	/**
 	 * Speichere den zustand alle {@link Attendee}
@@ -129,17 +141,21 @@ public class Simulator {
 	 * @author Sven Marquardt
 	 * @since 25.10.2017
 	 */
-	private void dumpList(final int dayNumber) throws SimulationException {
+	private void dumpList(final int dayNumber, final Path path) throws SimulationException {
 		final StringJoiner joiner = new StringJoiner(";");
-		final long time = System.currentTimeMillis();
+		final long directoryTimeId = System.nanoTime();
 		Stream.of(this.attendees).forEachOrdered(attendee -> joiner.add(attendee.toString()));
 		try {
-			Files.write(
-					Paths.get(this.setting.getPathToDumps(), "Simulations_Durchlauf" + dayNumber + "" + time + ".log"),
+			Files.write(Paths.get(path.toString(), "Simulations_Durchlauf" + dayNumber + "" + directoryTimeId + ".log"),
 					joiner.toString().getBytes(), StandardOpenOption.CREATE);
 		} catch (final IOException e) {
 			throw new SimulationException("Schreiben der Log datei fehlgeschlagen", e);
 		}
+	}
+
+	private Path dumpPath(final int dayNumber) throws IOException {
+		final Path path = Paths.get(this.setting.getPathToDumps(), "Durchlauf" + this.time + "Tag" + dayNumber);
+		return Files.createDirectory(path);
 	}
 
 	/**
@@ -149,7 +165,10 @@ public class Simulator {
 	 * @since 25.10.2017
 	 */
 	private void cleanUp() {
-		Stream.of(this.attendees).forEach(Attendee::setRecoverd);
+		Stream.of(this.attendees).forEach(attendee -> {
+			attendee.setRecoverd();
+			attendee.setImmun(false);
+		});
 	}
 
 	/**
@@ -161,7 +180,8 @@ public class Simulator {
 	private void randomFirst() {
 		final int randomAttende = RandomUtils.nextInt(0, this.attendeesCounter);
 		this.attendees[randomAttende].setIll();
-		this.attendees[randomAttende].setDaysLeftForRecovery(this.simulationDuration);
+		// Plus 1 da dieser tag am anfang der schleife wieder abgezogen wird
+		this.attendees[randomAttende].setDaysLeftForRecovery(this.simulationDuration + 1);
 	}
 
 	/**

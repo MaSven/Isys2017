@@ -21,7 +21,7 @@ public class Attendee {
 	/**
 	 * Welche nummer hat dieser Teilnehmer.
 	 */
-	private int id;
+	private final int id;
 	/**
 	 * Ist ein Teilnehme krank
 	 */
@@ -35,6 +35,10 @@ public class Attendee {
 	 */
 	private int daysLeftForRecovery;
 
+	/**
+	 * Anzahl der Attendes
+	 */
+	private static int countAttendes = 0;
 
 	/**
 	 * Erstelle einen Teilnehmer mit seinen Chancen einen anderen Teilnehmer zu
@@ -48,6 +52,7 @@ public class Attendee {
 	 */
 	public Attendee(final float[] chances) {
 		this.chancePerAttendee = chances.clone();
+		this.id = Attendee.countAttendes++;
 	}
 
 	/**
@@ -78,6 +83,10 @@ public class Attendee {
 		return this.isIll;
 	}
 
+	public boolean isContagious() {
+		return this.daysLeftForRecovery <= 9;
+	}
+
 	/**
 	 * @param isIll
 	 *            the isIll to set
@@ -97,8 +106,8 @@ public class Attendee {
 	 * @param isImmun
 	 *            the isImmun to set
 	 */
-	public void setImmun() {
-		this.isImmun = true;
+	public void setImmun(final boolean value) {
+		this.isImmun = value;
 	}
 
 	/**
@@ -134,12 +143,14 @@ public class Attendee {
 	 * @since 25.10.2017
 	 */
 	public void decreaseDaysLeftForRecovery() {
-
-		if (this.daysLeftForRecovery > 1) {
-			this.daysLeftForRecovery--;
-		} else {
-			this.daysLeftForRecovery--;
-			this.isIll = false;
+		if (this.isIll) {
+			if (this.daysLeftForRecovery > 1) {
+				this.daysLeftForRecovery--;
+			} else {
+				this.daysLeftForRecovery--;
+				this.setRecoverd();
+				this.setImmun(true);
+			}
 		}
 
 	}
