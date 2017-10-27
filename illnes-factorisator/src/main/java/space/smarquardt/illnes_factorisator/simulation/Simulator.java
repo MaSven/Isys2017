@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.StringJoiner;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -57,6 +58,8 @@ public class Simulator {
 	 * Benutzt um eine eindutige id für die logs zu erstellen
 	 */
 	private final long time = System.currentTimeMillis();
+	
+	private final Random random = new Random(12l);
 
 	/**
 	 * 
@@ -113,7 +116,7 @@ public class Simulator {
 						/* Hat er einen Kranken getroffen ? */
 						.filter(att -> attende.meetOtherAttende(att.getId()))
 						/* Ist er Krank geworden von der Begegnung? */
-						.filter(att -> Math.random() <= 0.1)
+						.filter(att -> random.nextDouble() < 0.1)
 						/* Mach ihn krank */
 						.forEach(illAttende -> {
 							illAttende.setDaysLeftForRecovery(this.simulationDuration);

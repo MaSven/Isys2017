@@ -4,6 +4,7 @@
 package space.smarquardt.illnes_factorisator.simulation;
 
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * Teilnehmer bei der Simulation
@@ -39,6 +40,8 @@ public class Attendee {
 	 * Anzahl der Attendes
 	 */
 	private static int countAttendes = 0;
+	
+	private static Random random = new Random(12l);
 
 	/**
 	 * Erstelle einen Teilnehmer mit seinen Chancen einen anderen Teilnehmer zu
@@ -66,7 +69,7 @@ public class Attendee {
 	 * @since 25.10.2017
 	 */
 	public boolean meetOtherAttende(final int otherId) {
-		return Math.random() <= this.chancePerAttendee[otherId];
+		return random.nextDouble() < this.chancePerAttendee[otherId];
 	}
 
 	/**
