@@ -1,30 +1,35 @@
 package space.smarquardt.sortalgorithm.implementations.impl;
 
-import java.util.Set;
-import java.util.stream.Stream;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Queue;
+import java.util.stream.Collectors;
 
-import space.smarquardt.sortalgorithm.implementations.impl.bintree.BinTree;
+import org.apache.commons.lang3.ArrayUtils;
+
+import space.smarquardt.sortalgorithm.implementations.impl.bintree.RedBlackTree;
+import space.smarquardt.sortalgorithm.implementations.impl.bintree.Tree;
 
 public class OwnSort extends AbstractSort {
 
-	private final BinTree tree;
+	private final Tree tree;
 
-	private double notActuallyData;
+	private final Queue<Double> valuesToSort;
 
 	public OwnSort(final int cylces, final double[] data) {
 		super(cylces, data);
-		this.tree = new BinTree(this);
+		this.tree = new RedBlackTree(this);
+		this.valuesToSort = new ArrayDeque<>();
 	}
 
 	@Override
 	public double[] getResult() {
-		final Set<Double> values = this.tree.getValuesSoerted();
-		for (final double d : this.data) {
-			values.add(d);
-		}
-		values.remove(this.notActuallyData);
-		final Double[] array = values.toArray(new Double[values.size()]);
-		return Stream.of(array).mapToDouble(Double::doubleValue).toArray();
+		final double[] sorted = this.tree.getSorted();
+		final Double[] notSorted = this.valuesToSort.toArray(new Double[this.valuesToSort.size()]);
+		double[] both = new double[0];
+		both = ArrayUtils.insert(0, both, sorted);
+		both = ArrayUtils.insert(sorted.length, both, ArrayUtils.toPrimitive(notSorted));
+		return both;
 	}
 
 	@Override
@@ -34,12 +39,12 @@ public class OwnSort extends AbstractSort {
 
 	@Override
 	public void sort() {
-		final double firstNode = 100;
-		this.notActuallyData = firstNode;
-		this.tree.addValue(this.notActuallyData);
-		for (final double d : this.data) {
-			this.tree.addValue(d);
+		this.valuesToSort.addAll(Arrays.stream(this.data).boxed().collect(Collectors.toList()));
+		while (!this.valuesToSort.isEmpty()) {
+			final double d = this.valuesToSort.remove();
+			this.tree.insert(d);
 		}
+		System.out.println("sort finished");
 	}
 
 }

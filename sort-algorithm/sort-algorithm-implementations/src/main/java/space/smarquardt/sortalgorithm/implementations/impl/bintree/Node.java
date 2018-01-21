@@ -1,10 +1,7 @@
 package space.smarquardt.sortalgorithm.implementations.impl.bintree;
 
-import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-
-import space.smarquardt.sortalgorithm.implementations.impl.DoubleComparator;
 
 /**
  * Knotenpunkt
@@ -14,51 +11,115 @@ import space.smarquardt.sortalgorithm.implementations.impl.DoubleComparator;
  */
 public class Node {
 	/**
-	 * Value das gehalten wird
+	 * Wert den dieser Knoten beinhaltet
 	 */
-	private final double value;
+	private double value;
 	/**
-	 * Zeiger auf den nächsten linken knoten. Liefert {@link Optional#empty()} wenn
-	 * es keinen gibt
+	 * Vaterknoten dieses Knotens
 	 */
-	private Optional<Node> left;
+	private Optional<Node> parent = Optional.empty();
 	/**
-	 * Rechter Knoten
+	 * Linker kind knoten
 	 */
-	private Optional<Node> right;
+	private Optional<Node> left = Optional.empty();
+	/**
+	 * Rechter kindknoten
+	 */
+	private Optional<Node> right = Optional.empty();
+	/**
+	 * Ist dieser Knoten ein schwarzer Knoten
+	 */
+	private Color color;
 
-	private final DoubleComparator comparator;
-	/**
-	 * Höhe dieses Knotens
-	 */
-	private final int height;
-
-	private int balance;
-	/**
-	 * Vater dieses Knotens
-	 */
-	private Optional<Node> parent;
+	enum Color {
+		RED, BLACK
+	}
 
 	/**
+	 * Ist dieser Knoten ein Nilknoten
+	 */
+	private boolean isNil;
+
+	/**
+	 * Nicht initialisieren
+	 */
+	private Node() {
+
+	}
+
+	static Node createRootNode(final double value) {
+		final Node rootNode = new Node();
+		rootNode.value = value;
+		rootNode.color = Color.BLACK;
+		rootNode.parent = Optional.empty();
+		rootNode.left = Optional.empty();
+		rootNode.right = Optional.empty();
+		rootNode.isNil = false;
+		return rootNode;
+	}
+
+	static Node createNilNode(final Node parentNode) {
+		final Node nilNode = new Node();
+		nilNode.value = 0;
+		nilNode.color = Color.BLACK;
+		nilNode.isNil = true;
+		nilNode.parent = Optional.ofNullable(parentNode);
+		nilNode.setLeft(null);
+		nilNode.setRight(null);
+		return nilNode;
+	}
+
+	/**
+	 * Erhalte einen neuen Knoten entscheident der Übergebenene.</br>
+	 * Der neue Knoten erhält den alten Knoten als Vater. Der Knoten wird außerdem
+	 * dem Vaterknoten links oder rechts angehängt je nach dem ob <b>left</b> true
+	 * oder false übergeben wurde. Der neue Knoten ist rot.
+	 *
+	 * @param parentNode
+	 *            Vaterknoten des neuen Knotens
 	 * @param value
-	 * @param next
+	 *            Wert der in dem neuen Knoten gespeichert werden soll
+	 * @param addLeft
+	 *            Soll der neue Knoten dem Vaterknoten rechts oder links angeordnet
+	 *            werden
+	 * @return
 	 */
-	public Node(final double value, final DoubleComparator comparator, final int height, final Node parent) {
-		super();
-		this.value = value;
-		this.left = Optional.empty();
-		this.right = Optional.empty();
-		this.comparator = comparator;
-		this.height = height;
-		this.parent = Optional.ofNullable(parent);
+	static Node getNewNodeDependentOfColour(final Node parentNode, final double value, final boolean addLeft) {
+		if (Objects.isNull(parentNode)) {
+			throw new IllegalArgumentException("Parent node darf nicht null sein");
+		}
+		final Node n = new Node();
+		n.value = value;
+		n.color = Color.RED;
+		n.parent = Optional.of(parentNode);
+		n.isNil = false;
+		n.left = Optional.empty();
+		n.right = Optional.empty();
+		if (addLeft) {
+			parentNode.setLeft(n);
+		} else {
+			parentNode.setRight(n);
+		}
+		return n;
 	}
 
-	public void addLeft(final double value) {
-		this.left = Optional.of(new Node(value, this.comparator, 0, this));
+	/**
+	 * @return the parent
+	 */
+	public Optional<Node> getParent() {
+		return this.parent;
 	}
 
-	public void addRight(final double value) {
-		this.right = Optional.of(new Node(value, this.comparator, 0, this));
+	/**
+	 * @param parent
+	 *            the parent to set
+	 */
+	protected void setParent(final Optional<Node> parent) {
+		if (parent == null) {
+			this.parent = Optional.empty();
+		} else {
+			this.parent = parent;
+		}
 	}
 
 	/**
@@ -69,10 +130,41 @@ public class Node {
 	}
 
 	/**
+	 * @param left
+	 *            the left to set
+	 */
+	protected void setLeft(final Node left) {
+		this.left = Optional.ofNullable(left);
+	}
+
+	/**
 	 * @return the right
 	 */
 	public Optional<Node> getRight() {
 		return this.right;
+	}
+
+	/**
+	 * @param right
+	 *            the right to set
+	 */
+	protected void setRight(final Node right) {
+		this.right = Optional.ofNullable(right);
+	}
+
+	/**
+	 * @return the black
+	 */
+	public boolean isBlack() {
+		return this.color == Color.BLACK;
+	}
+
+	/**
+	 * @param black
+	 *            the black to set
+	 */
+	protected void setBlack(final boolean black) {
+		this.color = (black ? Color.BLACK : Color.RED);
 	}
 
 	/**
@@ -83,74 +175,125 @@ public class Node {
 	}
 
 	/**
-	 * Füge einen knoten hinzu. Ermittel ob der neue wert größer oder kleiner ist
-	 * und fügt diesen entsprechend hinzu
+	 * Erhalte den Großvater dieses Knotens
 	 *
-	 * @param value
-	 *            Wert der hinzugefügt werden soll
+	 * @return {@link Optional} von Knoten. Wenn es keinen Großvater gibt ist es
+	 *         empty
 	 */
-	public void addValue(final double value) {
-		if (this.comparator.isLessThan(value, this.value)) {
-			if (this.left.isPresent()) {
-				this.left.get().addValue(value);
-			} else {
-				this.addLeft(value);
-			}
-		} else {
-			if (this.right.isPresent()) {
-				this.right.get().addValue(value);
-			} else {
-				this.addRight(value);
+	protected Optional<Node> getGrandParent() {
+		if (this.parent.isPresent()) {
+			if (this.parent.get().getParent().isPresent()) {
+				return this.parent.get().getParent();
 			}
 		}
-		this.reBalance();
+		return Optional.empty();
 	}
 
-	private void reBalance() {
-		this.left.ifPresent(nL -> nL.reBalance());
-		this.right.ifPresent(nR -> nR.reBalance());
-		final int balance = this.getBalance();
-		if (balance < -1) {
-			// Linklastig
-			this.rightRoation();
-		} else if (balance > 1) {
-			// Rechtslastig
-			this.leftRoation();
+	/**
+	 * Erhalte den Onkel dieses Knotens
+	 *
+	 * @return
+	 */
+	protected Optional<Node> getUncle() {
+		final Node localParent;
+		final Node grandParent;
+		if (this.parent.isPresent()) {
+			if (this.getGrandParent().isPresent()) {
+				localParent = this.parent.get();
+				grandParent = this.getGrandParent().get();
+				if (localParent == grandParent.getLeft().orElse(null)) {
+					return grandParent.getRight();
+				} else {
+					return grandParent.getLeft();
+				}
+			}
 		}
+		return Optional.empty();
 	}
 
-	private void leftRoation() {
-		if (!this.parent.isPresent()) {
-			return;
+	public static boolean nodeIsNil(final Optional<Node> node) {
+		if (node.isPresent()) {
+			return Node.nodeIsNil(node.get());
 		}
-		final Node leftNode = this.left.orElse(null);
-		final Node parentNode = this.parent.orElse(null);
-		parentNode.right = Optional.ofNullable(leftNode);
-		leftNode.parent = Optional.ofNullable(parentNode);
-		this.left = Optional.ofNullable(parentNode);
-		parentNode.parent = Optional.ofNullable(this);
-
+		return true;
 	}
 
-	private void rightRoation() {
-		if (!this.parent.isPresent()) {
-			return;
+	public static boolean nodeIsNil(final Node node) {
+		return node.isNil ? true : false;
+	}
+
+	public static boolean nodeNotNil(final Node node) {
+		return node.isNil ? false : true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = (prime * result) + ((this.color == null) ? 0 : this.color.hashCode());
+		result = (prime * result) + (this.isNil ? 1231 : 1237);
+		result = (prime * result) + ((this.left == null) ? 0 : this.left.hashCode());
+		result = (prime * result) + ((this.parent == null) ? 0 : this.parent.hashCode());
+		result = (prime * result) + ((this.right == null) ? 0 : this.right.hashCode());
+		long temp;
+		temp = Double.doubleToLongBits(this.value);
+		result = (prime * result) + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj) {
+			return true;
 		}
-		final Node rightNode = this.right.orElse(null);
-		final Node parentNode = this.parent.orElse(null);
-		parentNode.left = Optional.ofNullable(rightNode);
-		rightNode.parent = Optional.ofNullable(parentNode);
-		this.right = Optional.ofNullable(parentNode);
-		this.parent = Optional.ofNullable(parentNode);
-
-	}
-
-	public Set<Double> getValuesInsertionOrder() {
-		final Set<Double> values = new LinkedHashSet<>();
-		this.left.ifPresent(node -> values.addAll(node.getValuesInsertionOrder()));
-		values.add(this.value);
-		this.right.ifPresent(node -> values.addAll(node.getValuesInsertionOrder()));
-		return values;
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof Node)) {
+			return false;
+		}
+		final Node other = (Node) obj;
+		if (this.color != other.color) {
+			return false;
+		}
+		if (this.isNil != other.isNil) {
+			return false;
+		}
+		if (this.left == null) {
+			if (other.left != null) {
+				return false;
+			}
+		} else if (!this.left.equals(other.left)) {
+			return false;
+		}
+		if (this.parent == null) {
+			if (other.parent != null) {
+				return false;
+			}
+		} else if (!this.parent.equals(other.parent)) {
+			return false;
+		}
+		if (this.right == null) {
+			if (other.right != null) {
+				return false;
+			}
+		} else if (!this.right.equals(other.right)) {
+			return false;
+		}
+		if (Double.doubleToLongBits(this.value) != Double.doubleToLongBits(other.value)) {
+			return false;
+		}
+		return true;
 	}
 
 	/*
@@ -161,42 +304,24 @@ public class Node {
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
+		builder.append("Node [value=");
 		builder.append(this.value);
-		builder.append(" left: ");
-		if (this.left.isPresent()) {
-			builder.append(this.left.get().toString());
+		builder.append(", ");
+		if (this.parent != null) {
+			this.parent.ifPresent(p -> builder.append(", parent=[ value=").append(p.getValue()).append(", color=")
+					.append(p.color).append("]"));
 		}
-		builder.append(" right: ");
-		if (this.right.isPresent()) {
-			builder.append(this.right.get().toString());
+		if (this.color != null) {
+			builder.append("color=");
+			builder.append(this.color);
+			builder.append(", ");
 		}
-		builder.append(" \n");
+		builder.append(", isNil=");
+		builder.append(this.isNil);
+		this.left.ifPresent(l -> builder.append(", left=").append(l.getValue()));
+		this.right.ifPresent(r -> builder.append(", right=").append(r.getValue()));
+		builder.append("]");
 		return builder.toString();
 	}
 
-	private int getHeight() {
-		return Math.max(this.getLeftHeight(), this.getRightHeight());
-	}
-
-	private int getBalance() {
-		return this.getLeftHeight() - this.getRightHeight();
-	}
-
-	private int getLeftHeight() {
-		int leftHeight = 0;
-		if (this.left.isPresent()) {
-			leftHeight++;
-			leftHeight += this.left.get().getLeftHeight();
-		}
-		return leftHeight;
-	}
-
-	private int getRightHeight() {
-		int leftHeight = 0;
-		if (this.right.isPresent()) {
-			leftHeight++;
-			leftHeight += this.right.get().getLeftHeight();
-		}
-		return leftHeight;
-	}
 }
