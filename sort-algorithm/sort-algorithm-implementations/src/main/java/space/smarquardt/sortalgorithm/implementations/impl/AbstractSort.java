@@ -18,7 +18,7 @@ import space.smarquardt.sortalgorithm.implementations.RangedSort;
  */
 public abstract class AbstractSort implements RangedSort, DoubleComparator {
 	/**
-	 * Anzahl der vergleiche die durchführt dürfen werden
+	 * Anzahl der vergleiche die durchgeführt werden dürfen
 	 */
 	int cylces;
 	/**
@@ -68,6 +68,7 @@ public abstract class AbstractSort implements RangedSort, DoubleComparator {
 	 * @param cylces
 	 *            Anzahl der vergleichsoperationen die durchgeführt werden dürfen
 	 * @param data
+	 *            Daten die zu Sortieren sind
 	 */
 	public AbstractSort(final int cylces, final double[] data) {
 		super();
@@ -83,6 +84,10 @@ public abstract class AbstractSort implements RangedSort, DoubleComparator {
 		return this.result;
 	}
 
+	/**
+	 * Es wurde ein Vergleich durchgeführt. Speichert momentanen Stand der
+	 * Sortierung und inkrementiert den Vergleichzähler um einen
+	 */
 	private void incCounter() {
 		if (this.counter.intValue() <= this.cylces) {
 			this.result = this.getResult();
@@ -112,6 +117,11 @@ public abstract class AbstractSort implements RangedSort, DoubleComparator {
 		return this.isLessThan.test(firstNumber, secondNumber);
 	}
 
+	/**
+	 * Sind die anzahl der Vergleichoperatoren ausgeschöpft
+	 *
+	 * @return true wenn die Anzahl der vergleiche ausgeschöpft ist
+	 */
 	boolean isCycleExceeded() {
 		return !(this.counter.get() < this.cylces);
 	}

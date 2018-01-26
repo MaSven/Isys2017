@@ -1,25 +1,36 @@
 package space.smarquardt.sortalgorithm.implementations;
 
+import java.lang.reflect.Array;
+
+/**
+ * Einfache Sortierverfahren die ein Array sortieren und dessen Ergebnis
+ * liefert.
+ *
+ * @author Sven Marquardt
+ *
+ */
 public interface SimpleSort {
 
 	/**
-	 * Erhalte das fertig sortierte array
+	 * Enthält die Werte zum jetzigen zeitpunkt heißt, wenn das Array nicht fertig
+	 * Sortiert wurde, sind auch die nicht sortierten Werte in diesem Array
+	 * enthalten
 	 *
-	 * @return ein sortiertes array
+	 * @return Den momentanen Stand der Werte als {@link Array}
 	 */
 	double[] getResult();
 
 	/**
 	 * Name des Algortmus
-	 * 
-	 * @return
+	 *
+	 * @return Liefert den Namen dieses Algorithmus
 	 */
 	public String nameOfAlgorithm();
 
 	/**
 	 * Sortiert das übergeben Array der größe nach
 	 *
-	 * @return Array mit den werten sortiert in aufsteigender form
+	 *
 	 */
 	void sort();
 

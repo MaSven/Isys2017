@@ -27,18 +27,26 @@ public class Node {
 	 */
 	private Optional<Node> right = Optional.empty();
 	/**
-	 * Ist dieser Knoten ein schwarzer Knoten
+	 * Ist dieser Knoten ein schwarzer Knoten oder ein Roter
 	 */
 	private Color color;
 
-	enum Color {
-		RED, BLACK
-	}
-
 	/**
-	 * Ist dieser Knoten ein Nilknoten
+	 * Farben der {@link Node}
+	 *
+	 * @author Sven Marquardt
+	 *
 	 */
-	private boolean isNil;
+	enum Color {
+		/**
+		 * Roter Knoten
+		 */
+		RED,
+		/**
+		 * Schwrazer Knoten
+		 */
+		BLACK
+	}
 
 	/**
 	 * Nicht initialisieren
@@ -47,6 +55,13 @@ public class Node {
 
 	}
 
+	/**
+	 * Wurzelknoten erstellen. Dieser ist immer {@link Color#BLACK}
+	 *
+	 * @param value
+	 *            Wert den der Wurzelknoten beinhalten soll
+	 * @return Neuen Wurzelknoten
+	 */
 	static Node createRootNode(final double value) {
 		final Node rootNode = new Node();
 		rootNode.value = value;
@@ -54,26 +69,14 @@ public class Node {
 		rootNode.parent = Optional.empty();
 		rootNode.left = Optional.empty();
 		rootNode.right = Optional.empty();
-		rootNode.isNil = false;
 		return rootNode;
 	}
 
-	static Node createNilNode(final Node parentNode) {
-		final Node nilNode = new Node();
-		nilNode.value = 0;
-		nilNode.color = Color.BLACK;
-		nilNode.isNil = true;
-		nilNode.parent = Optional.ofNullable(parentNode);
-		nilNode.setLeft(null);
-		nilNode.setRight(null);
-		return nilNode;
-	}
-
 	/**
-	 * Erhalte einen neuen Knoten entscheident der Übergebenene.</br>
+	 * Erhalte einen neuen Knoten entscheident der Übergebenene.<br>
 	 * Der neue Knoten erhält den alten Knoten als Vater. Der Knoten wird außerdem
 	 * dem Vaterknoten links oder rechts angehängt je nach dem ob <b>left</b> true
-	 * oder false übergeben wurde. Der neue Knoten ist rot.
+	 * oder false übergeben wurde. Der neue Knoten ist immer rot.
 	 *
 	 * @param parentNode
 	 *            Vaterknoten des neuen Knotens
@@ -82,9 +85,9 @@ public class Node {
 	 * @param addLeft
 	 *            Soll der neue Knoten dem Vaterknoten rechts oder links angeordnet
 	 *            werden
-	 * @return
+	 * @return Neuer Knoten wie oben beschrieben
 	 */
-	static Node getNewNodeDependentOfColour(final Node parentNode, final double value, final boolean addLeft) {
+	static Node getNewNode(final Node parentNode, final double value, final boolean addLeft) {
 		if (Objects.isNull(parentNode)) {
 			throw new IllegalArgumentException("Parent node darf nicht null sein");
 		}
@@ -92,7 +95,6 @@ public class Node {
 		n.value = value;
 		n.color = Color.RED;
 		n.parent = Optional.of(parentNode);
-		n.isNil = false;
 		n.left = Optional.empty();
 		n.right = Optional.empty();
 		if (addLeft) {
@@ -192,7 +194,7 @@ public class Node {
 	/**
 	 * Erhalte den Onkel dieses Knotens
 	 *
-	 * @return
+	 * @return Den Onkelknoten dieses Knotens
 	 */
 	protected Optional<Node> getUncle() {
 		final Node localParent;
@@ -211,21 +213,6 @@ public class Node {
 		return Optional.empty();
 	}
 
-	public static boolean nodeIsNil(final Optional<Node> node) {
-		if (node.isPresent()) {
-			return Node.nodeIsNil(node.get());
-		}
-		return true;
-	}
-
-	public static boolean nodeIsNil(final Node node) {
-		return node.isNil ? true : false;
-	}
-
-	public static boolean nodeNotNil(final Node node) {
-		return node.isNil ? false : true;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 *
@@ -236,7 +223,6 @@ public class Node {
 		final int prime = 31;
 		int result = 1;
 		result = (prime * result) + ((this.color == null) ? 0 : this.color.hashCode());
-		result = (prime * result) + (this.isNil ? 1231 : 1237);
 		result = (prime * result) + ((this.left == null) ? 0 : this.left.hashCode());
 		result = (prime * result) + ((this.parent == null) ? 0 : this.parent.hashCode());
 		result = (prime * result) + ((this.right == null) ? 0 : this.right.hashCode());
@@ -264,9 +250,6 @@ public class Node {
 		}
 		final Node other = (Node) obj;
 		if (this.color != other.color) {
-			return false;
-		}
-		if (this.isNil != other.isNil) {
 			return false;
 		}
 		if (this.left == null) {
@@ -316,8 +299,6 @@ public class Node {
 			builder.append(this.color);
 			builder.append(", ");
 		}
-		builder.append(", isNil=");
-		builder.append(this.isNil);
 		this.left.ifPresent(l -> builder.append(", left=").append(l.getValue()));
 		this.right.ifPresent(r -> builder.append(", right=").append(r.getValue()));
 		builder.append("]");

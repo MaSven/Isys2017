@@ -13,14 +13,26 @@ package space.smarquardt.sortalgorithm.implementations.impl;
 public class Quicksort extends AbstractSort {
 
 	/**
+	 * Erstellen eines Quicksorts
+	 * 
 	 * @param cylces
+	 *            Anzahl der Vergleichsoperatoren
 	 * @param data
+	 *            Daten die zu sortieren sind
 	 */
 	public Quicksort(final int cylces, final double[] data) {
 		super(cylces, data);
 	}
 
-	private void divide(final int left, final int right) {
+	/**
+	 * Quicksort durchführen
+	 *
+	 * @param left
+	 *            Anfang der Sortierung
+	 * @param right
+	 *            Ende der Sortierung
+	 */
+	private void sortQuickSort(final int left, final int right) {
 		int i = left;
 		int j = right;
 		final double pivot = this.data[left + ((right - left) / 2)];
@@ -39,10 +51,10 @@ public class Quicksort extends AbstractSort {
 			}
 		}
 		if (left < j) {
-			this.divide(left, j);
+			this.sortQuickSort(left, j);
 		}
 		if (i < right) {
-			this.divide(i, right);
+			this.sortQuickSort(i, right);
 		}
 	}
 
@@ -63,9 +75,17 @@ public class Quicksort extends AbstractSort {
 	 */
 	@Override
 	public void sort() {
-		this.divide(0, this.data.length - 1);
+		this.sortQuickSort(0, this.data.length - 1);
 	}
 
+	/**
+	 * Tausche die Daten in data an den Positionen
+	 *
+	 * @param i
+	 *            Position i
+	 * @param j
+	 *            Position j
+	 */
 	private void swap(final int i, final int j) {
 		final double temp = this.data[i];
 		this.data[i] = this.data[j];

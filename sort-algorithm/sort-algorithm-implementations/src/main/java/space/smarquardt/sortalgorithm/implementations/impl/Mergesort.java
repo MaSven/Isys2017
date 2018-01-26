@@ -15,8 +15,12 @@ public final class Mergesort extends AbstractSort {
 	private final double[] copyData;
 
 	/**
+	 * Erstellen eines Mergesort
+	 * 
 	 * @param cylces
+	 *            Anzahl der Vergleichsoperatoren die durchgeführt werden dürfen
 	 * @param data
+	 *            Daten die sortiert werden sollen
 	 */
 	public Mergesort(final int cylces, final double[] data) {
 		super(cylces, data);

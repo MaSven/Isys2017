@@ -21,11 +21,4 @@ public interface Tree {
 	 * @return Array das die werte aufsteigend sortiert enthält
 	 */
 	public double[] getSorted();
-
-	/**
-	 * Erhalte die sortierten werten mit ausnahme des letzen hinzugefügten Wertes
-	 *
-	 * @return Array mit den Werten aufsteigend sortiert
-	 */
-	public double[] getSortedWithout();
 }

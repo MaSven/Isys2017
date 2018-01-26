@@ -10,6 +10,12 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import space.smarquardt.sortalgorithm.implementations.impl.DoubleComparator;
 
+/**
+ * Ein RotSchwarzbaum
+ *
+ * @author Sven Marquardt
+ *
+ */
 public class RedBlackTree implements Tree {
 	/**
 	 * Letzter hinzugefügter Knoten
@@ -19,11 +25,16 @@ public class RedBlackTree implements Tree {
 	 * Erster Knoten des Baumes
 	 */
 	private Optional<Node> root = Optional.empty();
-
+	/**
+	 * Um vergleiche mit {@link Double} durchführen zu können
+	 */
 	private final DoubleComparator comparator;
 
 	/**
+	 * Erstelle einen {@link RedBlackTree}
 	 *
+	 * @param comparator
+	 *            Vergleichsoperator für {@link Double}
 	 */
 	public RedBlackTree(final DoubleComparator comparator) {
 		super();
@@ -32,7 +43,7 @@ public class RedBlackTree implements Tree {
 
 	@Override
 	public void insert(final double value) {
-		if (!this.root.isPresent() || Node.nodeIsNil(this.root)) {
+		if (!this.root.isPresent()) {
 			this.root = Optional.of(Node.createRootNode(value));
 			this.lastAdded = this.root.get();
 		} else {
@@ -43,14 +54,14 @@ public class RedBlackTree implements Tree {
 					if (node.getLeft().isPresent()) {
 						nOptional = node.getLeft();
 					} else {
-						this.lastAdded = Node.getNewNodeDependentOfColour(node, value, true);
+						this.lastAdded = Node.getNewNode(node, value, true);
 						break;
 					}
 				} else {
 					if (node.getRight().isPresent()) {
 						nOptional = node.getRight();
 					} else {
-						this.lastAdded = Node.getNewNodeDependentOfColour(node, value, false);
+						this.lastAdded = Node.getNewNode(node, value, false);
 						break;
 					}
 				}
@@ -65,6 +76,10 @@ public class RedBlackTree implements Tree {
 
 	}
 
+	/**
+	 * Prüfe ob eine der Regeln von {@link RedBlackTree} verletzt sind und wenn ja
+	 * RedBlacktree reparieren
+	 */
 	private void redBlackInsert() {
 		Node problemNode = this.lastAdded;
 		while (true) {
@@ -97,6 +112,7 @@ public class RedBlackTree implements Tree {
 
 				continue;
 			}
+			// Fall 4
 			if ((problemNode == parentOfProblem.getRight().orElse(null)) && grandParent.isPresent()
 					&& (parentOfProblem == grandParent.get().getLeft().orElse(null))) {
 				this.leftRotate(parentOfProblem);
@@ -112,7 +128,7 @@ public class RedBlackTree implements Tree {
 				grandParent = problemNode.getGrandParent();
 				uncle = problemNode.getUncle();
 			}
-
+			// Fall 5
 			if ((parentOfProblem != null) && !parentOfProblem.isBlack() && uncle.isPresent() && uncle.get().isBlack()) {
 				parentOfProblem.setBlack(true);
 				grandParent.ifPresent(gP -> gP.setBlack(false));
@@ -128,6 +144,12 @@ public class RedBlackTree implements Tree {
 		}
 	}
 
+	/**
+	 * Führe eine LinksRotation durch am Knoten n
+	 *
+	 * @param n
+	 *            Knoten an dem eine Linksrotation ausgeführt werden soll
+	 */
 	private void leftRotate(final Node n) {
 		final Optional<Node> parentLocal = n.getParent();
 		final Optional<Node> right = n.getRight();
@@ -155,6 +177,12 @@ public class RedBlackTree implements Tree {
 
 	}
 
+	/**
+	 * Führe eine RechtsRotation durch am Knoten n
+	 *
+	 * @param n
+	 *            Knoten an dem eine Rotation ausgeführt werden soll
+	 */
 	private void rightRotate(final Node n) {
 
 		final Optional<Node> parentLocal = n.getParent();
@@ -202,12 +230,6 @@ public class RedBlackTree implements Tree {
 			}
 		}
 		return ArrayUtils.toPrimitive(valuesSorted.toArray(new Double[valuesSorted.size()]));
-	}
-
-	@Override
-	public double[] getSortedWithout() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }
